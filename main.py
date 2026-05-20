@@ -10,7 +10,7 @@ from threading import Thread
 TOKEN = '7144823144:AAGbrTI2a-XdsyHrpsAGpCQYdGHR30Cxd-g'
 CHAT_ID = '@jogorapidoo'
 API_KEY = '62d36a176d2e9b4ea1227525462dde7c'
-PV_LINK = "https://t.me/SEU_USUARIO_PV"
+PV_LINK = "@joellington1"
 
 CASAS = [
     {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734&campaign=WELCOME"},
