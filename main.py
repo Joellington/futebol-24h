@@ -13,11 +13,11 @@ API_KEY = '62d36a176d2e9b4ea1227525462dde7c'
 
 # Configuração das Casas com suas Imagens (Substitua pelos links reais das suas fotos)
 CASAS = [
-    {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734", "img": "https://i.postimg.cc/zeus_thunder.jpg", "cor": "Amarela"},
-    {"n": "WILD", "l": "https://wildpartners.app/aygxryvmo", "img": "https://i.postimg.cc/wild_casino.jpg", "cor": "Dourada"},
-    {"n": "1XBIT", "l": "https://refpa04636.pro/L?tag=d_4461890m_99582c_", "img": "https://i.postimg.cc/1xbit_green.jpg", "cor": "Verde"},
-    {"n": "DB BET", "l": "https://refpa96317.com/L?tag=d_5308638m_11213c_", "img": "https://i.postimg.cc/dbbet_green.jpg", "cor": "Verde"},
-    {"n": "PARIPESA", "l": "https://combodef.com/L?tag=d_5573724m_45569c_&site=5573724&ad=45569", "img": "https://i.postimg.cc/paripesa_blue.jpg", "cor": "Azul"}
+    {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734", "img": "https://i.postimg.cc/fVMd5FHh/zeus.png", "cor": "Amarela"},
+    {"n": "WILD", "l": "https://wildpartners.app/aygxryvmo", "img": "https://i.postimg.cc/jLHNHK4w/cassino-luxo.png", "cor": "Dourada"},
+    {"n": "1XBIT", "l": "https://refpa04636.pro/L?tag=d_4461890m_99582c_", "img": "https://i.postimg.cc/pmPjk7s3/esportes.png", "cor": "Verde"},
+    {"n": "DB BET", "l": "https://refpa96317.com/L?tag=d_5308638m_11213c_", "img": "https://i.postimg.cc/pmPjk7s3/esportes.png", "cor": "Verde"},
+    {"n": "PARIPESA", "l": "https://combodef.com/L?tag=d_5573724m_45569c_&site=5573724&ad=45569", "img": "https://i.postimg.cc/3k3G96L5/paripesa.png", "cor": "Azul"}
 ]
 
 # ================= BIBLIOTECA HUMANIZADA (VARIEDADE TOTAL) =================
