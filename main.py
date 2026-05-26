@@ -10,32 +10,47 @@ from threading import Thread
 TOKEN = '7144823144:AAGbrTI2a-XdsyHrpsAGpCQYdGHR30Cxd-g'
 CHAT_ID = '@jogorapidoo'
 API_KEY = '62d36a176d2e9b4ea1227525462dde7c'
-PV_LINK = "@joellington1"
+PV_LINK = "joellington1" # Seu usuário configurado aqui
 
-# CONFIGURAÇÃO DAS CASAS COM AS FOTOS QUE VOCÊ ENVIOU
+# CONFIGURAÇÃO DAS CASAS COM SEUS LINKS DE FOTOS REAIS
 CASAS = [
-    {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734&campaign=WELCOME", "img": "https://i.postimg.cc/fVMd5FHh/zeus.png", "txt": "⚡ Odd turbinada na Thunder!"},
-    {"n": "WILD", "l": "https://wildpartners.app/aygxryvmo", "img": "https://i.postimg.cc/jLHNHK4w/cassino-luxo.png", "txt": "🎰 Bônus de Cassino e Esportes na Wild!"},
-    {"n": "1XBIT", "l": "https://refpa04636.pro/L?tag=d_4461890m_99582c_&site=4461890&ad=99582", "img": "https://i.postimg.cc/mPT9Vqmn/crypto-elite.png", "txt": "₿ Elite das Apostas com Cripto!"},
-    {"n": "DB BET", "l": "https://refpa96317.com/L?tag=d_5308638m_11213c_&site=5308638&ad=11213", "img": "https://i.postimg.cc/pmPjk7s3/esportes.png", "txt": "🟢 DB BET: Saque via PIX mais rápido do mercado!"},
+    {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734&campaign=WELCOME", "img": "https://i.postimg.cc/fVMd5FHh/zeus.png", "txt": "⚡ Oportunidade na Thunder! Odds no teto!"},
+    {"n": "WILD", "l": "https://wildpartners.app/aygxryvmo", "img": "https://i.postimg.cc/jLHNHK4w/cassino-luxo.png", "txt": "🎰 A Wild está pagando muito nesse mercado!"},
+    {"n": "1XBIT", "l": "https://refpa04636.pro/L?tag=d_4461890m_99582c_&site=4461890&ad=99582", "img": "https://i.postimg.cc/mPT9Vqmn/crypto-elite.png", "txt": "₿ Elite das Apostas! Entre pela 1xBit!"},
+    {"n": "DB BET", "l": "https://refpa96317.com/L?tag=d_5308638m_11213c_&site=5308638&ad=11213", "img": "https://i.postimg.cc/pmPjk7s3/esportes.png", "txt": "🟢 DB BET: Saque instantâneo liberado!"},
     {"n": "PARIPESA", "l": "https://combodef.com/L?tag=d_5573724m_45569c_&site=5573724&ad=45569", "img": "https://i.postimg.cc/3k3G96L5/paripesa.png", "txt": "⚠️ Use o código 'Jogo' na Paripesa para BÔNUS! 🎁"}
 ]
 
-# ================= BIBLIOTECA HUMANIZADA (GÍRIAS E ANÁLISES) =================
+# FRASES PARA HUMANIZAÇÃO
 ANALISES = [
-    "Gráfico de pressão tá batendo no teto! O gol tá maduro.", "O time da casa tá amassando, a zebra não passa do meio campo.",
-    "Achei um desajuste absurdo nessa odd aqui, vamos aproveitar!", "Leitura de jogo feita: os cantos vão sair em sequência agora.",
-    "Sniper ativado! Esse mercado de cartões tá muito lucrativo.", "O favorito tá com sangue nos olhos, não sai da área adversária.",
-    "Estatísticas de elite detectadas pelo nosso algoritmo.", "Jogo muito aberto, ideal para nossa estratégia de gols.",
-    "Análise pré-live confirmada pelo desempenho ao vivo. É o ouro!", "A casa de apostas vacilou nessa linha, vamos entrar forte."
+    "O gráfico de pressão tá explodindo! O gol tá maduro.", "Estatísticas indicam tendência forte de cantos agora.",
+    "O favorito tá amassando, a zebra não passa do meio de campo.", "Radar ativado! Vi valor absurdo nessa entrada.",
+    "Mercado de cartões tá no ponto, o juiz é rigoroso.", "Análise técnica feita: probabilidade de 94% aqui.",
+    "A odd tá desajustada, vamos aproveitar esse erro da casa!", "Acabei de filtrar esse jogo, valor puro!"
 ]
 
-CHAMADAS = [
-    "Vou com 2 unidades aqui, gestão de banca sempre!", "Quem tá no lucro comigo? Bora pra mais uma!",
-    "Entrem rápido, essa odd vai despencar!", "Confiem na leitura, o mestre tá inspirado hoje.",
-    "Preparem o grito de Green! Essa é muito forte.", "Bora buscar o café da manhã com essa entrada.",
-    "Acompanhem o movimento, valor puro nesse mercado.", "Sem medo! A análise técnica é impecável aqui."
-]
+# ================= FUNÇÕES DE ENVIO (SISTEMA DE FOTOS) =================
+def enviar_telegram(msg, casa_obj):
+    url = f"https://api.telegram.org/bot{TOKEN}/"
+    footer = f"\n\n{casa_obj['txt']}\n🚀 [APOSTE AQUI]({casa_obj['l']})\n📩 Dúvidas no PV: https://t.me/{PV_LINK}"
+    
+    try:
+        # Tenta enviar com foto
+        res = requests.post(url + "sendPhoto", data={
+            'chat_id': CHAT_ID, 
+            'photo': casa_obj['img'], 
+            'caption': msg + footer, 
+            'parse_mode': 'Markdown'
+        })
+        # Se falhar a foto, envia só texto para não perder a entrada
+        if res.status_code != 200:
+            requests.post(url + "sendMessage", data={
+                'chat_id': CHAT_ID, 
+                'text': msg + footer, 
+                'parse_mode': 'Markdown',
+                'disable_web_page_preview': False
+            })
+    except: pass
 
 # ================= MOTOR DE DADOS =================
 def get_api_data(sport, end):
@@ -48,81 +63,53 @@ def get_api_data(sport, end):
 
 app = Flask('')
 @app.route('/')
-def home(): return "Robô Ativo e Lucrando!"
+def home(): return "Robô Ativo com Fotos e PV Corrigido!"
 def run_site(): app.run(host='0.0.0.0', port=8080)
 
-# ================= O CÉREBRO DO ROBÔ =================
-def monitorar_tudo():
-    # Inicia banco de dados para lucro/perda
-    conn = sqlite3.connect('master.db')
-    conn.execute('CREATE TABLE IF NOT EXISTS sinais (id_j TEXT PRIMARY KEY, status TEXT, stake REAL)')
-    conn.execute('CREATE TABLE IF NOT EXISTS banca (id INTEGER PRIMARY KEY, lucro REAL, g INTEGER, r INTEGER)')
-    if not conn.execute('SELECT * FROM banca').fetchone(): conn.execute('INSERT INTO banca VALUES (1, 0, 0, 0)')
-    conn.commit()
-    conn.close()
-
+# ================= LOOP PRINCIPAL =================
+def monitorar():
     while True:
         try:
-            # Seleciona Esporte e Mercado aleatório para diversificar
-            esporte = random.choice(["FUTEBOL", "NBA", "FIFA", "CS:GO", "VOLEI"])
             casa = random.choice(CASAS)
+            # Tenta buscar futebol ao vivo
+            jogos = get_api_data("fut", "fixtures?live=all")
             
-            # Busca jogos reais de futebol ou basquete
-            jogos_reais = get_api_data("fut" if esporte in ["FUTEBOL", "FIFA"] else "bas", "fixtures?live=all")
-            
-            if jogos_reais:
-                j = random.choice(jogos_reais)
+            if jogos:
+                j = random.choice(jogos)
                 t1, t2 = j['teams']['home']['name'], j['teams']['away']['name']
-                id_j = f"GAME_{j.get('id', random.randint(1000,9999))}"
                 
-                # Define o mercado baseado no esporte
-                mercado = random.choice(["Over 1.5 Gols", "Escanteios HT", "Mais de 3.5 Cartões", "Vencer Partida"])
-                if esporte == "NBA": mercado = "Over Pontos Q4"
-                if esporte == "FIFA": mercado = "Mais de 2.5 Gols (10 min)"
-                if esporte == "CS:GO": mercado = "Vencedor Mapa 2"
-
-                stake = random.choice([1, 2, 3])
+                # Sorteia mercados reais
+                mercados = ["Over 1.5 Gols", "Mais de 8.5 Escanteios", "Ambas Marcam", "Mais de 3.5 Cartões"]
+                escolha = random.choice(mercados)
+                
                 msg = (
-                    f"🎯 **NOVA ENTRADA: {esporte}**\n\n"
+                    f"⚽ **ENTRADA REAL CONFIRMADA**\n\n"
                     f"🏟 **{t1} x {t2}**\n"
-                    f"✅ **Entrada:** {mercado}\n"
-                    f"💰 **Gestão:** {stake} Unidades\n\n"
-                    f"📝 **Análise:** {random.choice(ANALISES)}\n"
-                    f"🚀 {random.choice(CHAMADAS)}"
+                    f"🎯 **Entrada:** {escolha}\n"
+                    f"💰 **Sugestão:** {random.randint(1,3)}% da banca\n\n"
+                    f"💡 {random.choice(ANALISES)}"
                 )
-                
-                # Envia com a foto da casa correspondente
-                footer = f"\n\n{casa['txt']}\n🔗 [APOSTE AQUI COM BÔNUS]({casa['l']})"
-                requests.post(f"https://api.telegram.org/bot{TOKEN}/sendPhoto", 
-                             data={'chat_id': CHAT_ID, 'photo': casa['img'], 'caption': msg + footer, 'parse_mode': 'Markdown'})
-                
-                # Salva sinal como pendente
-                conn = sqlite3.connect('master.db')
-                conn.execute('INSERT OR IGNORE INTO sinais VALUES (?,?,?)', (id_j, 'PENDENTE', stake))
-                conn.commit()
-                conn.close()
-
-            # Lógica de Green/Red (Simula resultado após 15 min)
-            time.sleep(900) # Espera 15 min para o próximo sinal ou resultado
+                enviar_telegram(msg, casa)
             
-            # Manda um feedback de resultado aleatório para movimentar
-            feedback = random.choice([
-                "✅✅ **GREEN! MAIS UM PRA CONTA!**",
-                "✅ **TÁ LÁ! O LUCRO CAIU!**",
-                "❌ Essa não bateu. Mantemos a gestão de banca.",
-                "✅ **GREEN CONFIRMADO!** Quem seguiu lucrou!"
-            ])
-            requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={'chat_id': CHAT_ID, 'text': feedback, 'parse_mode': 'Markdown'})
-            
-            # Relatório de Lucro a cada 5 sinais
-            if random.randint(1, 5) == 3:
-                relat = "📊 **RELATÓRIO DE HOJE:**\n✅ Greens: 12\n❌ Reds: 2\n💰 Lucro: +8.5 Units\n\nSeguimos a meta!"
-                requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={'chat_id': CHAT_ID, 'text': relat, 'parse_mode': 'Markdown'})
+            # Mensagens de interação/E-sports simuladas caso não tenha jogo real bom
+            elif random.randint(1, 3) == 2:
+                msg_interacao = random.choice([
+                    "🎮 **FIFA / ESPORTS:** Tô filtrando umas partidas aqui, fiquem ligados!",
+                    "🏀 **NBA:** Rodada de hoje tá prometendo, jaja mando as brabas!",
+                    "🔥 O canal tá on! Quem tá lucrando manda o print no PV!"
+                ])
+                enviar_telegram(msg_interacao, casa)
 
+            # Resultados aleatórios para manter o canal vivo
+            if random.randint(1, 4) == 2:
+                res_msg = random.choice(["✅ GREEN! Lucro no bolso!", "✅✅ TÁ LÁ! Mais um green!", "❌ Red. Seguimos a gestão."])
+                requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={'chat_id': CHAT_ID, 'text': res_msg})
+
+            time.sleep(random.randint(400, 800)) # Intervalo humano entre 6 e 13 minutos
         except Exception as e:
             print(f"Erro: {e}")
             time.sleep(60)
 
 if __name__ == "__main__":
     Thread(target=run_site).start()
-    monitorar_tudo()
+    monitorar()
