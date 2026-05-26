@@ -2,7 +2,7 @@ import requests
 import time
 import sqlite3
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Flask
 from threading import Thread
 
@@ -10,139 +10,144 @@ from threading import Thread
 TOKEN = '7144823144:AAGbrTI2a-XdsyHrpsAGpCQYdGHR30Cxd-g'
 CHAT_ID = '@jogorapidoo'
 API_KEY = '62d36a176d2e9b4ea1227525462dde7c'
-PV_LINK = "@joellington1"
 
+# Configuração das Casas com suas Imagens (Substitua pelos links reais das suas fotos)
 CASAS = [
-    {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734&campaign=WELCOME"},
-    {"n": "WILD", "l": "https://wildpartners.app/aygxryvmo"},
-    {"n": "1XBIT", "l": "https://refpa04636.pro/L?tag=d_4461890m_99582c_&site=4461890&ad=99582"},
-    {"n": "DB BET", "l": "https://refpa96317.com/L?tag=d_5308638m_11213c_&site=5308638&ad=11213"}
+    {"n": "THUNDER", "l": "https://go.thunder.partners/visit/?bta=37612&nci=5734", "img": "https://i.postimg.cc/zeus_thunder.jpg", "cor": "Amarela"},
+    {"n": "WILD", "l": "https://wildpartners.app/aygxryvmo", "img": "https://i.postimg.cc/wild_casino.jpg", "cor": "Dourada"},
+    {"n": "1XBIT", "l": "https://refpa04636.pro/L?tag=d_4461890m_99582c_", "img": "https://i.postimg.cc/1xbit_green.jpg", "cor": "Verde"},
+    {"n": "DB BET", "l": "https://refpa96317.com/L?tag=d_5308638m_11213c_", "img": "https://i.postimg.cc/dbbet_green.jpg", "cor": "Verde"},
+    {"n": "PARIPESA", "l": "https://combodef.com/L?tag=d_5573724m_45569c_&site=5573724&ad=45569", "img": "https://i.postimg.cc/paripesa_blue.jpg", "cor": "Azul"}
 ]
 
-# ================= BANCO DE DADOS (ANTI-REPETIÇÃO) =================
-def init_db():
+# ================= BIBLIOTECA HUMANIZADA (VARIEDADE TOTAL) =================
+ANALISES = [
+    "O gráfico de pressão tá explodindo aqui!", "O time visitante tá todo recuado, o gol tá maduro.",
+    "Estatísticas de elite detectadas pelo algoritmo.", "Acabei de receber um insider sobre esse confronto.",
+    "Valor absurdo nessa odd, a casa de apostas vacilou feio.", "O favorito tá amassando, não sai desse campo de ataque.",
+    "O sniper da equipe de e-sports tá num dia inspirado.", "Muitas faltas e jogo parado, o mercado de cartões é o ouro aqui.",
+    "O histórico desse juiz favorece muito nossa entrada.", "Jogo de 'vida ou morte' pra eles, vão se expor no contra-ataque."
+]
+
+CHAMADAS = [
+    "Vou entrar com 2 unidades aqui sem medo!", "Gestão conservadora, mas a entrada é ótima.",
+    "Quem vem comigo nessa? O lucro tá batendo na porta.", "Bora buscar o café da manhã!",
+    "Preparem as bancas, o sinal é forte.", "Confiem no processo, a análise foi minuciosa.",
+    "Entrem rápido antes que a odd caia!", "Vou pesado nessa, sinto cheiro de green."
+]
+
+# ================= MOTOR DE MERCADOS =================
+def gerar_entrada_real(esporte):
+    mercados = {
+        "futebol": ["Mais de 1.5 Gols", "Mais de 8.5 Escanteios", "Ambas Marcam", "Handicap -1.0", "Mais de 3.5 Cartões"],
+        "basquete": ["Over Pontos no Q3", "Vencedor Partida (ML)", "Handicap de Pontos", "Total de Assistências"],
+        "esports": ["Vencedor do Mapa 1", "Total de Rounds Over", "Handicap de Mapas", "First Blood (Primeiro abate)"],
+        "volei": ["Mais de 45.5 Pontos no Set", "Vencedor do Jogo", "Handicap de Sets"],
+        "fifa": ["Mais de 2.5 Gols (10 min)", "Vencedor da Partida", "Over 0.5 Gols HT"]
+    }
+    lista = mercados.get(esporte, ["Over Gols/Pontos"])
+    return random.choice(lista)
+
+# ================= FUNÇÃO DE ENVIO E BANCO =================
+def enviar_sinal(msg, casa, foto_casa):
+    url = f"https://api.telegram.org/bot{TOKEN}/"
+    footer = f"\n\n🎁 **BÔNUS NA {casa['n']}:** Use o código **'JOGO'**\n🔗 [CLIQUE AQUI PARA APOSTAR]({casa['l']})"
+    
+    try:
+        payload = {'chat_id': CHAT_ID, 'photo': foto_casa, 'caption': msg + footer, 'parse_mode': 'Markdown'}
+        requests.post(url + "sendPhoto", data=payload)
+    except: pass
+
+def log_banca(tipo, valor):
     conn = sqlite3.connect('master_stats.db')
-    conn.execute('CREATE TABLE IF NOT EXISTS sinais (id_j TEXT PRIMARY KEY, status TEXT, data TEXT)')
+    if tipo == "GREEN":
+        conn.execute('UPDATE banca SET lucro_total = lucro_total + ?, greens = greens + 1 WHERE id=1', (valor,))
+    else:
+        conn.execute('UPDATE banca SET lucro_total = lucro_total - ?, reds = reds + 1 WHERE id=1', (valor,))
     conn.commit()
     conn.close()
 
-# ================= MOTOR DE INTELIGÊNCIA DE TEXTO =================
-def gerar_comentario(time_fav, time_zebra, esporte="futebol"):
-    frases = [
-        f"Vi aqui que o {time_fav} está amassando. Entrei forte!",
-        f"O {time_fav} é muito favorito, mas o {time_zebra} tem uma escapada perigosa.",
-        f"Achei uma oportunidade de ouro nesse jogo do {time_fav}.",
-        f"O mercado de gols/pontos aqui está com valor. Vamos aproveitar!",
-        f"Análise feita: o {time_fav} deve confirmar o favoritismo, mas vamos com gestão.",
-        f"Essa entrada aqui é pra quem tem peito. Vamos pra cima!",
-        f"Estatísticas de elite detectadas no confronto {time_fav} x {time_zebra}."
-    ]
-    return random.choice(frases)
+# ================= O CÉREBRO DO ROBÔ (LOOP) =================
+def monitorar_global():
+    # Inicializa DB se não existir
+    conn = sqlite3.connect('master_stats.db')
+    conn.execute('CREATE TABLE IF NOT EXISTS sinais (id_j TEXT PRIMARY KEY, status TEXT, data TEXT, stake REAL)')
+    conn.execute('CREATE TABLE IF NOT EXISTS banca (id INTEGER PRIMARY KEY, lucro_total REAL, greens INTEGER, reds INTEGER)')
+    if not conn.execute('SELECT * FROM banca').fetchone():
+        conn.execute('INSERT INTO banca VALUES (1, 0.0, 0, 0)')
+    conn.commit()
+    conn.close()
 
-# ================= FUNÇÕES DE ENVIO =================
-def enviar_telegram(txt, foto=None):
-    url = f"https://api.telegram.org/bot{TOKEN}/"
-    try:
-        casa = random.choice(CASAS)
-        footer = f"\n\n🚀 [APOSTE NA {casa['n']} AQUI]({casa['l']})\n📩 Dúvidas no PV: {PV_LINK}"
-        if foto:
-            requests.post(url + "sendPhoto", data={'chat_id': CHAT_ID, 'photo': foto, 'caption': txt + footer, 'parse_mode': 'Markdown'})
-        else:
-            requests.post(url + "sendMessage", data={'chat_id': CHAT_ID, 'text': txt + footer, 'parse_mode': 'Markdown'})
-    except: pass
-
-# ================= MOTOR DE DADOS (MÚLTIPLOS ESPORTES) =================
-def get_api_data(sport, end):
-    hosts = {
-        "fut": "v3.football.api-sports.io",
-        "bas": "v3.basketball.api-sports.io"
-    }
-    h = {'x-rapidapi-host': hosts.get(sport, hosts['fut']), 'x-rapidapi-key': API_KEY}
-    try:
-        r = requests.get(f"https://{hosts.get(sport, hosts['fut'])}/{end}", headers=h, timeout=15)
-        return r.json().get('response', [])
-    except: return []
-
-# ================= SITE PARA O RENDER NÃO DORMIR =================
-app = Flask('')
-@app.route('/')
-def home(): return "Robô Omnisciente Ativo 24h"
-
-def run_site(): app.run(host='0.0.0.0', port=8080)
-
-# ================= LOOP PRINCIPAL (A MÁQUINA) =================
-def monitorar_tudo():
-    init_db()
     while True:
         try:
-            # 1. ANALISA FUTEBOL AO VIVO (AGRESSIVO)
-            jogos_fut = get_api_data("fut", "fixtures?live=all")
-            for j in jogos_fut:
-                id_j = f"FUT_{j['fixture']['id']}"
+            # 1. ESCOLHE O ESPORTE DO MOMENTO (Para dar variedade)
+            esporte_da_rodada = random.choice(["futebol", "basquete", "volei", "esports", "fifa"])
+            casa = random.choice(CASAS)
+            
+            # 2. BUSCA DADOS REAIS (Exemplo Futebol)
+            jogos = get_api_data("fut" if esporte_da_rodada in ["futebol", "fifa"] else "bas", "fixtures?live=all")
+            
+            if not jogos: # Se não tiver jogo ao vivo, manda uma pré-análise
+                time.sleep(60)
+                continue
+
+            j = random.choice(jogos) # Pega um jogo aleatório para não ser sempre o primeiro
+            id_j = f"{esporte_da_rodada}_{j.get('id', random.randint(1,99999))}"
+
+            conn = sqlite3.connect('master_stats.db')
+            if not conn.execute('SELECT id_j FROM sinais WHERE id_j=?', (id_j,)).fetchone():
+                t1 = j['teams']['home']['name']
+                t2 = j['teams']['away']['name']
+                entrada = gerar_entrada_real(esporte_da_rodada)
+                stake = random.choice([1, 1.5, 2, 2.5, 3, 5])
+                
+                # Montagem da Mensagem Humanizada
+                emoji = "⚽" if esporte_da_rodada == "futebol" else "🎮" if esporte_da_rodada == "esports" else "🏀"
+                msg = (
+                    f"{emoji} **NOVA OPORTUNIDADE: {esporte_da_rodada.upper()}**\n"
+                    f"⚔️ **{t1} vs {t2}**\n\n"
+                    f"📝 **Análise:** {random.choice(ANALISES)}\n"
+                    f"🎯 **Entrada:** {entrada}\n"
+                    f"💰 **Sugestão:** {stake}% da banca\n\n"
+                    f"💡 {random.choice(CHAMADAS)}"
+                )
+                
+                enviar_sinal(msg, casa, casa['img'])
+                conn.execute('INSERT INTO sinais VALUES (?,?,?,?)', (id_j, 'PENDENTE', str(datetime.now()), stake))
+                conn.commit()
+            conn.close()
+
+            # 3. FEEDBACK DE RESULTADOS (Verifica 1 sinal antigo por ciclo)
+            if random.randint(1, 4) == 2:
                 conn = sqlite3.connect('master_stats.db')
-                if not conn.execute('SELECT id_j FROM sinais WHERE id_j=?', (id_j,)).fetchone():
-                    t1, t2 = j['teams']['home']['name'], j['teams']['away']['name']
-                    msg = f"⚽ **FUTEBOL AO VIVO**\n🏟 {t1} x {t2}\n🎯 Entrada: Over Gols\n\n💡 {gerar_comentario(t1, t2)}"
-                    enviar_telegram(msg, j['teams']['home']['logo'])
-                    conn.execute('INSERT INTO sinais VALUES (?,?,?)', (id_j, 'PENDENTE', str(datetime.now())))
-                    conn.commit()
+                antigo = conn.execute('SELECT id_j, stake FROM sinais WHERE status="PENDENTE" LIMIT 1').fetchone()
+                if antigo:
+                    if random.random() > 0.35: # 65% de taxa de acerto simulada
+                        log_banca("GREEN", antigo[1] * 0.9)
+                        msg_g = random.choice(["✅ CAIU O PIX! Green absurdo!", "✅ GREEN! O mestre não erra!", "✅ TÁ LÁ! Lucro no bolso família!"])
+                        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={'chat_id': CHAT_ID, 'text': msg_g})
+                    else:
+                        log_banca("RED", antigo[1])
+                        msg_r = random.choice(["❌ Essa não veio. O time entregou no final.", "❌ Red. Faz parte da gestão, sem pânico.", "❌ Não bateu. Vamos pra próxima com calma."])
+                        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={'chat_id': CHAT_ID, 'text': msg_r})
+                    conn.execute('UPDATE sinais SET status="FIM" WHERE id_j=?', (antigo[0],))
+                conn.commit()
                 conn.close()
 
-            # 2. ANALISA NBA/BASQUETE
-            jogos_bas = get_api_data("bas", "games?live=all")
-            for b in jogos_bas:
-                id_b = f"BAS_{b['id']}"
+            # 4. RELATÓRIO DE BANCA PERIÓDICO
+            if random.randint(1, 20) == 10:
                 conn = sqlite3.connect('master_stats.db')
-                if not conn.execute('SELECT id_j FROM sinais WHERE id_j=?', (id_b,)).fetchone():
-                    t1, t2 = b['teams']['home']['name'], b['teams']['away']['name']
-                    msg = f"🏀 **BASQUETE / NBA**\n🏀 {t1} x {t2}\n🎯 Entrada: Over Pontos\n\n💡 {gerar_comentario(t1, t2, 'basquete')}"
-                    enviar_telegram(msg, b['teams']['home']['logo'])
-                    conn.execute('INSERT INTO sinais VALUES (?,?,?)', (id_b, 'PENDENTE', str(datetime.now())))
-                    conn.commit()
+                b = conn.execute('SELECT * FROM banca').fetchone()
+                relat = f"📈 **RESUMO DA SESSÃO**\n\n✅ Greens: {b[2]}\n❌ Reds: {b[3]}\n💰 Lucro: {b[1]:.2f} units\n\nBora pra cima! 🚀"
+                requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={'chat_id': CHAT_ID, 'text': relat})
                 conn.close()
 
-            # 3. ANALISA PRÉ-JOGO (DICAS PARA AMANHÃ E HOJE TARDE)
-            hoje = datetime.now().strftime("%Y-%m-%d")
-            amanha = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-            for data_analise in [hoje, amanha]:
-                pre_jogos = get_api_data("fut", f"fixtures?date={data_analise}")
-                for p in pre_jogos[:10]: # Pega os 10 principais do dia
-                    id_p = f"PRE_{p['fixture']['id']}"
-                    conn = sqlite3.connect('master_stats.db')
-                    if not conn.execute('SELECT id_j FROM sinais WHERE id_j=?', (id_p,)).fetchone():
-                        t1, t2 = p['teams']['home']['name'], p['teams']['away']['name']
-                        msg = f"💎 **DICA PRÉ-JOGO ({data_analise})**\n🏟 {t1} x {t2}\n🎯 Entrada: Vitória do Favorito\n\n💡 Analisei esse jogo horas antes e a zebra não tem chance aqui."
-                        enviar_telegram(msg, p['teams']['home']['logo'])
-                        conn.execute('INSERT INTO sinais VALUES (?,?,?)', (id_p, 'ENVIADO', str(datetime.now())))
-                        conn.commit()
-                    conn.close()
-
-            # 4. MENSAGENS DE RESULTADO (GREEN/RED AUTOMÁTICO)
-            # (Aqui simulamos o feedback para o canal ter movimento)
-            if random.randint(1, 5) == 3:
-                resultado = random.choice([
-                    "✅ GREEN! VAMOS LÁ! O lucro entrou!",
-                    "✅✅ MAIS UM GREEN! O mestre avisou!",
-                    "❌ Red pessoal. Essa foi ruim, o time não rendeu.",
-                    "❌ Pegamos Red aqui. Faz parte da gestão, vamos recuperar!"
-                ])
-                enviar_telegram(resultado)
-
-            # 5. E-SPORTS / VÔLEI (INTERAÇÃO)
-            if random.randint(1, 10) == 7:
-                msg_extra = random.choice([
-                    "🎮 **VALORANT / CS:GO:** Tô de olho numas partidas aqui, jaja mando algo!",
-                    "🏐 **VÔLEI:** Alguém operando vôlei hoje? As ligas europeias tão pagando muito!",
-                    "🔥 O canal tá bombando! Mandem o print dos lucros no PV!"
-                ])
-                enviar_telegram(msg_extra)
-
-            print("♻️ Ciclo de análise global completo.")
-            time.sleep(300) # Varre tudo a cada 5 minutos
+            time.sleep(random.randint(300, 600)) # Pausa entre 5 e 10 min para parecer humano
         except Exception as e:
             print(f"Erro: {e}")
-            time.sleep(60)
+            time.sleep(30)
 
+# (Mantenha as funções do Flask e requests API que já funcionam)
 if __name__ == "__main__":
     Thread(target=run_site).start()
-    monitorar_tudo()
+    monitorar_global()
